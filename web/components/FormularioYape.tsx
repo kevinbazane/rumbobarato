@@ -74,7 +74,8 @@ export function FormularioYape({ monto }: { monto: string }) {
     return <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">Falta configurar la clave pública de Mercado Pago (NEXT_PUBLIC_MP_PUBLIC_KEY).</p>;
   }
 
-  const valido = /^9\d{8}$/.test(celular) && /^\d{6}$/.test(codigo);
+  // 9 dígitos (no se exige que empiece con 9: los números de prueba de Mercado Pago empiezan con 1).
+  const valido = /^\d{9}$/.test(celular) && /^\d{6}$/.test(codigo);
 
   return (
     <form onSubmit={pagar} className="space-y-4">
