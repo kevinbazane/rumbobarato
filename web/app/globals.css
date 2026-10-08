@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-arena-100 text-tinta-900;
+  }
+  ::selection {
+    @apply bg-coral-200 text-tinta-900;
+  }
+}
+
+@layer components {
+  .contenedor {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+  .boton {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .boton-primario {
+    @apply boton bg-coral-500 text-white shadow-[0_8px_20px_-8px_rgba(255,90,54,.8)] hover:bg-coral-600 focus-visible:outline-coral-500;
+  }
+  .boton-oscuro {
+    @apply boton bg-tinta-900 text-white hover:bg-tinta-800 focus-visible:outline-tinta-900;
+  }
+  .boton-claro {
+    @apply boton border border-tinta-100 bg-white text-tinta-900 hover:border-tinta-200 hover:bg-arena-50 focus-visible:outline-tinta-300;
+  }
+  .etiqueta {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold;
+  }
+  .titulo-seccion {
+    @apply text-2xl font-extrabold tracking-tight text-tinta-900 sm:text-3xl;
+  }
+  .campo {
+    @apply w-full rounded-xl border border-tinta-100 bg-white px-4 py-3 text-base text-tinta-900 outline-none transition
+      placeholder:text-tinta-300 focus:border-coral-400 focus:ring-4 focus:ring-coral-100;
+  }
+}
