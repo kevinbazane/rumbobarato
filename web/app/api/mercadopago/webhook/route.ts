@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const dataId = url.searchParams.get('data.id') ?? (cuerpo.data?.id != null ? String(cuerpo.data.id) : null);
   if (tipo !== 'order' || !dataId) return NextResponse.json({ ignorado: true });
 
-  const secreto = process.env.MP_WEBHOOK_SECRET;
+  const secreto = process.env.MP_WEBHOOK_SECRET?.trim();
   if (secreto) {
     const valida = firmaMercadoPagoValida({
       xSignature: req.headers.get('x-signature'),

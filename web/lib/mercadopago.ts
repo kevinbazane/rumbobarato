@@ -13,7 +13,7 @@ import { supabaseAdmin } from './supabase/admin.ts';
 const API = 'https://api.mercadopago.com';
 
 async function mp<T>(ruta: string, init: RequestInit = {}): Promise<T> {
-  const token = process.env.MP_ACCESS_TOKEN;
+  const token = process.env.MP_ACCESS_TOKEN?.trim();
   if (!token) throw new Error('Falta MP_ACCESS_TOKEN');
   const r = await fetch(`${API}${ruta}`, {
     ...init,

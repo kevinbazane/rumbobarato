@@ -42,7 +42,7 @@ function describirError(e: unknown): string {
  */
 export function FormularioYape({ monto }: { monto: string }) {
   const router = useRouter();
-  const clavePublica = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
+  const clavePublica = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY?.trim(); // quita espacios pegados por error
   const [celular, setCelular] = useState('');
   const [codigo, setCodigo] = useState('');
   const [estado, setEstado] = useState<'listo' | 'enviando' | 'error' | 'pendiente'>('listo');
