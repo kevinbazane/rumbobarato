@@ -28,8 +28,13 @@ async function mp<T>(ruta: string, init: RequestInit = {}): Promise<T> {
   });
   const cuerpo = await r.json().catch(() => ({}));
   if (!r.ok) {
-    const c = cuerpo as { message?: string; errors?: { message?: string }[] };
-    throw new Error(`Mercado Pago ${r.status}: ${c.errors?.[0]?.message ?? c.message ?? r.statusText}`);
+    // Un pago rechazado puede volver con error HTTP pero con la orden completa (status "failed"):
+    // en ese caso se devuelve la orden para mostrar el motivo del rechazo.
+    const c = cuerpo as { id?: string; status?: string; message?: string; errors?: { code?: string; message?: string; details?: string[] }[] };
+    if (c.id && c.status) return cuerpo as T;
+    const e = c.errors?.[0];
+    const detalle = [e?.code, e?.message ?? c.message, ...(e?.details ?? [])].filter(Boolean).join(' – ');
+    throw new Error(`Mercado Pago ${r.status}: ${detalle || r.statusText}`);
   }
   return cuerpo as T;
 }
