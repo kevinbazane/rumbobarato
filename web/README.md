@@ -118,9 +118,23 @@ La web usa la **API de Orders** de Mercado Pago (`/v1/orders`), la más nueva, q
 
 1. Crea un repositorio privado en https://github.com y sube la carpeta del proyecto. Si no sabes cómo, pídeme que te guíe.
 2. En https://vercel.com, haz clic en **Add New → Project**, elige el repositorio y en **Root Directory** pon `web`.
-3. En **Environment Variables** pega las variables de [`.env.example`](.env.example) con tus valores:
-   - `NEXT_PUBLIC_SITE_URL` = la dirección final de tu web (sin `/` al final).
-   - `OFERTAS_API_SECRET` = inventa una clave larga, por ejemplo 40 letras y números al azar.
+3. En **Environment Variables** agrega cada variable: **Key** = el nombre (cópialo exacto), **Value** = tu valor. Usa "Add More" para la siguiente.
+
+   | Key | Value | Dónde lo consigues |
+   |---|---|---|
+   | `NEXT_PUBLIC_SITE_URL` | `https://rumbobarato.vercel.app` | El nombre del proyecto en Vercel + `.vercel.app` (sin `/` al final) |
+   | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` | Supabase → Project Settings → API → Project URL |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` | Supabase → Project Settings → API → anon public |
+   | `SUPABASE_SERVICE_ROLE_KEY` ⚠️ | `eyJ...` | Supabase → Project Settings → API → service_role |
+   | `NEXT_PUBLIC_MP_PUBLIC_KEY` | `APP_USR-...` o `TEST-...` | Mercado Pago → Credenciales → Public Key |
+   | `MP_ACCESS_TOKEN` ⚠️ | `APP_USR-...` o `TEST-...` | Mercado Pago → Credenciales → Access Token |
+   | `MP_WEBHOOK_SECRET` ⚠️ | letras y números | Mercado Pago → Webhooks → Clave secreta |
+   | `OFERTAS_API_SECRET` ⚠️ | 48 caracteres al azar | Créala en la terminal con `openssl rand -hex 24`. Guárdala: va también en Apps Script (`WEB_API_SECRET`) |
+   | `UNSPLASH_ACCESS_KEY` | *(opcional)* | unsplash.com/developers |
+
+   ⚠️ = secreta: solo va en Vercel, nunca en el código ni en mensajes.
+   - Atajo: en la casilla **Key** puedes pegar varias líneas `NOMBRE=valor` y Vercel las separa solo.
+   - Si aún no tienes Supabase o Mercado Pago, puedes hacer **Deploy sin variables**: la web sale en modo demo. Después las agregas en Settings → Environment Variables y haces **Deployments → ⋯ → Redeploy**.
 4. Haz clic en **Deploy**. Vercel te da una dirección tipo `https://rumbobarato.vercel.app`.
 5. (Opcional) **Dominio propio:** compra `rumbobarato.com` o `.pe` y agrégalo en Vercel → Settings → Domains. Después actualiza `NEXT_PUBLIC_SITE_URL`, la Site URL de Supabase y el webhook de Mercado Pago.
 
