@@ -26,6 +26,16 @@ function cargarSdk(): Promise<void> {
   });
 }
 
+/** El SDK de Mercado Pago a veces rechaza con objetos o arreglos en vez de Error. */
+function describirError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  try {
+    return JSON.stringify(e).slice(0, 200);
+  } catch {
+    return String(e);
+  }
+}
+
 /**
  * Pago con Yape vía Mercado Pago: el usuario pone su celular y el código de
  * aprobación que genera la app de Yape (Menú → Código de aprobación).
@@ -47,16 +57,27 @@ export function FormularioYape({ monto }: { monto: string }) {
     if (!clavePublica) return;
     setEstado('enviando');
     setMensaje('');
+    let etapa = 'cargar Mercado Pago';
     try {
       await cargarSdk();
+      etapa = 'crear el token de Yape';
       const mp = new window.MercadoPago!(clavePublica, { locale: 'es-PE' });
       const token = await mp.yape({ otp: codigo, phoneNumber: celular }).create();
+      if (!token?.id) throw new Error('Mercado Pago no devolvió token');
+
+      etapa = 'procesar el pago';
       const r = await fetch('/api/pagos/yape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: token.id }),
       });
-      const datos = (await r.json()) as { ok: boolean; pendiente?: boolean; mensaje?: string };
+      const texto = await r.text();
+      let datos: { ok: boolean; pendiente?: boolean; mensaje?: string };
+      try {
+        datos = JSON.parse(texto);
+      } catch {
+        throw new Error(`El servidor respondió ${r.status}: ${texto.slice(0, 120)}`);
+      }
       if (datos.ok) {
         router.push('/pago/exito?medio=yape');
         router.refresh();
@@ -64,9 +85,13 @@ export function FormularioYape({ monto }: { monto: string }) {
       }
       setEstado(datos.pendiente ? 'pendiente' : 'error');
       setMensaje(datos.mensaje ?? 'No se pudo completar el pago.');
-    } catch {
+    } catch (e) {
+      console.error('Yape', etapa, e);
       setEstado('error');
-      setMensaje('Revisa tu número y el código de aprobación (vence en pocos minutos) e inténtalo de nuevo.');
+      setMensaje(
+        `No pudimos ${etapa}. Revisa tu número y el código de aprobación (vence en pocos minutos) e inténtalo de nuevo. ` +
+          `Detalle: ${describirError(e)}`,
+      );
     }
   }
 
