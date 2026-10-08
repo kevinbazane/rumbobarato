@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resumenOrden, validarOrdenPagada, type OrdenMP } from './orden.ts';
+import { referenciaDeUsuario, resumenOrden, usuarioDeReferencia, validarOrdenPagada, type OrdenMP } from './orden.ts';
 
 const USUARIO = '3f2b8c1e-1d2a-4b7f-9c3e-5a6b7c8d9e0f';
 const pagada = (cambios: Partial<OrdenMP> = {}): OrdenMP => ({
@@ -10,7 +10,7 @@ const pagada = (cambios: Partial<OrdenMP> = {}): OrdenMP => ({
   total_amount: '9.90',
   total_paid_amount: '9.90',
   currency: 'PEN',
-  external_reference: `premium-mensual:${USUARIO}`,
+  external_reference: referenciaDeUsuario(USUARIO),
   transactions: { payments: [{ id: 'PAY01', status: 'processed', status_detail: 'accredited', amount: '9.90', payment_method: { id: 'yape', type: 'debit_card' } }] },
   ...cambios,
 });
@@ -35,7 +35,7 @@ test('otra moneda: no activa', () => {
 
 test('referencia ajena o manipulada: no activa', () => {
   assert.equal(validarOrdenPagada(pagada({ external_reference: 'otra-tienda:123' })).ok, false);
-  assert.equal(validarOrdenPagada(pagada({ external_reference: 'premium-mensual:no-es-uuid' })).ok, false);
+  assert.equal(validarOrdenPagada(pagada({ external_reference: 'premium_no-es-uuid' })).ok, false);
 });
 
 test('orden de otro usuario al verificar desde la página de éxito: no activa', () => {
@@ -47,4 +47,12 @@ test('resumen de estados', () => {
   assert.equal(resumenOrden(pagada()), 'pagada');
   assert.equal(resumenOrden(pagada({ status: 'action_required', status_detail: 'waiting_payment' })), 'pendiente');
   assert.equal(resumenOrden(pagada({ status: 'failed', status_detail: 'rejected_by_issuer' })), 'rechazada');
+});
+
+test('referencia: solo letras, números y "_", y se puede recuperar el usuario', () => {
+  const ref = referenciaDeUsuario(USUARIO);
+  assert.match(ref, /^[a-z0-9_]+$/);
+  assert.ok(ref.length <= 64);
+  assert.equal(usuarioDeReferencia(ref), USUARIO);
+  assert.equal(usuarioDeReferencia('premium-mensual:' + USUARIO), null);
 });

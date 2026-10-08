@@ -1,7 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { PLAN, SITIO } from './config.ts';
-import { PREFIJO_REFERENCIA, validarOrdenPagada, type OrdenMP } from './orden.ts';
+import { referenciaDeUsuario, validarOrdenPagada, type OrdenMP } from './orden.ts';
 import { supabaseAdmin } from './supabase/admin.ts';
 
 /**
@@ -39,7 +39,6 @@ async function mp<T>(ruta: string, init: RequestInit = {}): Promise<T> {
   return cuerpo as T;
 }
 
-const referencia = (usuarioId: string) => `${PREFIJO_REFERENCIA}${usuarioId}`;
 const monto = PLAN.precio.toFixed(2); // la API de Orders recibe montos como texto: "9.90"
 const descripcion = `${PLAN.nombre} – ${PLAN.dias} días`;
 
@@ -51,7 +50,7 @@ export async function crearOrdenCheckoutPro(usuario: { id: string; email: string
       type: 'online',
       processing_mode: 'manual',
       total_amount: monto,
-      external_reference: referencia(usuario.id),
+      external_reference: referenciaDeUsuario(usuario.id),
       description: descripcion,
       // Sin "payer": quien paga se identifica en la página de Mercado Pago. Así se puede
       // pagar con otra cuenta (y, en modo prueba, con la cuenta compradora de prueba).
@@ -78,7 +77,7 @@ export function crearOrdenYape(usuario: { id: string; email: string }, token: st
       type: 'online',
       processing_mode: 'automatic',
       total_amount: monto,
-      external_reference: referencia(usuario.id),
+      external_reference: referenciaDeUsuario(usuario.id),
       description: descripcion,
       payer: { email: usuario.email },
       transactions: {
