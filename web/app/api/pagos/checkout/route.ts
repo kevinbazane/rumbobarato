@@ -17,6 +17,8 @@ export async function POST() {
     return respuesta;
   } catch (e) {
     console.error('checkout', e);
-    return NextResponse.json({ error: 'No pudimos iniciar el pago. Intenta de nuevo en un momento.' }, { status: 502 });
+    // El detalle viene de Mercado Pago (no contiene claves) y ayuda a diagnosticar.
+    const detalle = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: `No pudimos iniciar el pago. Intenta de nuevo en un momento. Detalle: ${detalle}` }, { status: 502 });
   }
 }
