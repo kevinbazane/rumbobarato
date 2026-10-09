@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { WHATSAPP_CANAL } from '@/lib/config';
 import { Logo } from './Logo';
 
 export function PiePagina() {
@@ -17,6 +18,7 @@ export function PiePagina() {
             <li><Link href="/#nacionales" className="hover:text-white">Ofertas nacionales</Link></li>
             <li><Link href="/#internacionales" className="hover:text-white">Ofertas internacionales</Link></li>
             <li><Link href="/premium" className="hover:text-white">Plan Premium</Link></li>
+            <li><a href={WHATSAPP_CANAL} target="_blank" rel="noopener noreferrer" className="hover:text-white">Canal de WhatsApp gratis</a></li>
           </ul>
         </div>
         <div>

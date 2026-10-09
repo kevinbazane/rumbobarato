@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { IconoCampana, IconoCandado, IconoCheck, IconoEscudo, IconoMundo, IconoReloj } from '@/components/Iconos';
 import { TarjetaOferta } from '@/components/TarjetaOferta';
-import { PLAN } from '@/lib/config';
+import { PLAN, WHATSAPP_CANAL } from '@/lib/config';
 import { precio } from '@/lib/formato';
 import { listarOfertas } from '@/lib/ofertas';
 import { obtenerSesion } from '@/lib/sesion';
@@ -204,7 +204,10 @@ function SinOfertas() {
     <div className="mt-6 rounded-3xl border-2 border-dashed border-tinta-100 bg-white/60 p-10 text-center">
       <IconoMundo className="mx-auto h-8 w-8 text-tinta-300" />
       <p className="mt-3 font-bold">Por ahora no hay ofertas activas</p>
-      <p className="mt-1 text-sm text-tinta-500">Estamos vigilando los precios. Vuelve pronto o únete a nuestro canal de WhatsApp.</p>
+      <p className="mt-1 text-sm text-tinta-500">
+        Estamos vigilando los precios. Vuelve pronto o{' '}
+        <a href={WHATSAPP_CANAL} target="_blank" rel="noopener noreferrer" className="font-bold text-[#128C4B] underline">únete a nuestro canal de WhatsApp</a>.
+      </p>
     </div>
   );
 }

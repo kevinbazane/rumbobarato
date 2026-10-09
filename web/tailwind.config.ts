@@ -21,6 +21,18 @@ export default {
       fontFamily: {
         sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
       },
+      keyframes: {
+        aparecer: { '0%': { opacity: '0', transform: 'translateY(14px) scale(.98)' }, '100%': { opacity: '1', transform: 'none' } },
+        flotar: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+        desfile: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+        latido: { '0%,100%': { boxShadow: '0 0 0 0 rgba(37,211,102,.55)' }, '70%': { boxShadow: '0 0 0 16px rgba(37,211,102,0)' } },
+      },
+      animation: {
+        aparecer: 'aparecer .6s cubic-bezier(.2,.8,.2,1) both',
+        flotar: 'flotar 5s ease-in-out infinite',
+        desfile: 'desfile 40s linear infinite',
+        latido: 'latido 2.2s ease-out infinite',
+      },
       boxShadow: {
         tarjeta: '0 1px 2px rgba(11,23,48,.06), 0 8px 24px -12px rgba(11,23,48,.18)',
         elevada: '0 2px 4px rgba(11,23,48,.06), 0 24px 48px -20px rgba(11,23,48,.35)',

@@ -22,3 +22,7 @@ export const DIAS_VIGENCIA_OFERTA = 10;
 
 /** Cookie con el id de la última orden de Checkout Pro, para verificarla al volver de Mercado Pago. */
 export const COOKIE_ORDEN = 'rb_orden';
+
+/** Canal de WhatsApp gratuito (ofertas nacionales). Se puede cambiar con NEXT_PUBLIC_WHATSAPP_CANAL en Vercel. */
+export const WHATSAPP_CANAL =
+  process.env.NEXT_PUBLIC_WHATSAPP_CANAL?.trim() || 'https://whatsapp.com/channel/0029VbEGgks65yDDNNABrv2C';
