@@ -70,7 +70,13 @@ export default async function Premium() {
             {MODO_DEMO ? (
               <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">Los pagos se activan cuando configures Supabase y Mercado Pago.</p>
             ) : usuario ? (
-              <MediosDePago monto={monto} />
+              <>
+                <MediosDePago monto={monto} />
+                <p className="mt-4 text-center text-xs text-tinta-500">
+                  Al pagar aceptas los <Link href="/terminos" className="underline">Términos y condiciones</Link> (sin renovación automática) y la{' '}
+                  <Link href="/privacidad" className="underline">Política de privacidad</Link>.
+                </p>
+              </>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-tinta-600">Crea tu cuenta gratis o ingresa para suscribirte. Así tu plan queda guardado y lo usas en cualquier dispositivo.</p>

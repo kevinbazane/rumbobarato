@@ -26,3 +26,12 @@ export const COOKIE_ORDEN = 'rb_orden';
 /** Canal de WhatsApp gratuito (ofertas nacionales). Se puede cambiar con NEXT_PUBLIC_WHATSAPP_CANAL en Vercel. */
 export const WHATSAPP_CANAL =
   process.env.NEXT_PUBLIC_WHATSAPP_CANAL?.trim() || 'https://whatsapp.com/channel/0029VbEGgks65yDDNNABrv2C';
+
+/** Datos legales del proveedor (Libro de Reclamaciones, términos y privacidad). */
+export const EMPRESA = {
+  razonSocial: 'GRUPO TECNOHOGAR S.A.C.',
+  ruc: '20612357821',
+  domicilio: 'Mz. I Lote 1, Sector F, Urb. Los Ángeles, Ate, Lima, Perú',
+  correo: 'kevinbazanespinoza@gmail.com',
+  marca: 'RumboBarato',
+} as const;

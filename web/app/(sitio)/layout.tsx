@@ -7,7 +7,7 @@ export default function LayoutSitio({ children }: { children: React.ReactNode })
   return (
     <>
       {MODO_DEMO && (
-        <div className="bg-tinta-900 py-1.5 text-center text-xs font-medium text-tinta-200">
+        <div className="bg-tinta-900 py-1.5 text-center print:hidden text-xs font-medium text-tinta-200">
           Modo demo: estás viendo ofertas de ejemplo. Configura Supabase para ver las reales.
         </div>
       )}

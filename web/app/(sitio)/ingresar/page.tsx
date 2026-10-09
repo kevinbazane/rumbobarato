@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FormularioIngreso } from '@/components/FormularioIngreso';
 import { Isotipo } from '@/components/Logo';
@@ -29,6 +30,10 @@ export default async function Ingresar({ searchParams }: Props) {
             <FormularioIngreso siguiente={siguiente} />
           )}
         </div>
+        <p className="mt-6 text-center text-xs text-tinta-500">
+          Al ingresar aceptas los <Link href="/terminos" className="underline">Términos y condiciones</Link> y la{' '}
+          <Link href="/privacidad" className="underline">Política de privacidad</Link>.
+        </p>
       </div>
     </div>
   );

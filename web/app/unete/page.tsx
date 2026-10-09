@@ -5,6 +5,7 @@ import { BotonCanal } from '@/components/landing/BotonCanal';
 import { TelefonoAlerta } from '@/components/landing/TelefonoAlerta';
 import { Logo } from '@/components/Logo';
 import { FotoDestino } from '@/components/FotoDestino';
+import { EMPRESA } from '@/lib/config';
 import { OFERTAS_DEMO } from '@/lib/demo';
 import { fechaCorta, haceCuanto, precio, textoEscalas } from '@/lib/formato';
 import { listarOfertas } from '@/lib/ofertas';
@@ -261,8 +262,13 @@ export default async function Unete() {
           <p className="relative mt-3 text-sm text-coral-100">Gratis · Sin registrarte · Sin spam</p>
         </div>
         <p className="mt-8 text-center text-xs text-tinta-400">
-          © {new Date().getFullYear()} RumboBarato. Los precios provienen de Google Flights al momento de la detección y pueden cambiar sin aviso.
+          © {new Date().getFullYear()} RumboBarato · {EMPRESA.razonSocial} · RUC {EMPRESA.ruc}. Los precios provienen de Google Flights al momento de la detección y pueden cambiar sin aviso.
         </p>
+        <nav className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-tinta-500">
+          <a href="/terminos" className="underline">Términos y condiciones</a>
+          <a href="/privacidad" className="underline">Política de privacidad</a>
+          <a href="/libro-de-reclamaciones" className="underline">Libro de Reclamaciones</a>
+        </nav>
       </section>
 
       <BarraFija />

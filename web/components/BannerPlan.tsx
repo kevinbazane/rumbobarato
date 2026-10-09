@@ -32,7 +32,7 @@ export async function BannerPlan() {
   }
 
   return (
-    <div role="status" className={estilo}>
+    <div role="status" className={`${estilo} print:hidden`}>
       <div className="contenedor flex flex-col items-start gap-2 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-start gap-2 font-medium">
           <IconoCampana className="mt-0.5 h-4 w-4 shrink-0" />

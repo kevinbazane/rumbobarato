@@ -38,6 +38,26 @@
   .titulo-seccion {
     @apply text-2xl font-extrabold tracking-tight text-tinta-900 sm:text-3xl;
   }
+  /* Texto de páginas legales (términos, privacidad). */
+  .legal h2 {
+    @apply mt-10 text-xl font-extrabold text-tinta-900;
+  }
+  .legal h3 {
+    @apply mt-6 font-bold text-tinta-900;
+  }
+  .legal p,
+  .legal li {
+    @apply mt-3 leading-relaxed text-tinta-700;
+  }
+  .legal ul {
+    @apply list-disc pl-6;
+  }
+  .legal ol {
+    @apply list-decimal pl-6;
+  }
+  .legal a {
+    @apply font-semibold text-coral-600 underline;
+  }
   .campo {
     @apply w-full rounded-xl border border-tinta-100 bg-white px-4 py-3 text-base text-tinta-900 outline-none transition
       placeholder:text-tinta-300 focus:border-coral-400 focus:ring-4 focus:ring-coral-100;

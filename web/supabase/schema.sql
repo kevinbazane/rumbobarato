@@ -125,3 +125,37 @@ end $$;
 
 revoke execute on function public.registrar_pago_aprobado(text, uuid, numeric, text, text, jsonb, int)
   from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Libro de Reclamaciones virtual (Código de Protección y Defensa del Consumidor).
+-- Solo el servidor escribe y lee (sin políticas RLS públicas). Conservar al menos 2 años.
+-- ---------------------------------------------------------------------------
+create sequence if not exists public.reclamaciones_numero_seq;
+
+create table if not exists public.reclamaciones (
+  id uuid primary key default gen_random_uuid(),
+  numero bigint not null unique default nextval('public.reclamaciones_numero_seq'),
+  creado_en timestamptz not null default now(),
+  -- 1. Consumidor
+  nombre text not null,
+  tipo_documento text not null,
+  numero_documento text not null,
+  domicilio text not null,
+  telefono text,
+  email text not null,
+  menor_de_edad boolean not null default false,
+  apoderado text,
+  -- 2. Bien contratado
+  bien_tipo text not null check (bien_tipo in ('producto', 'servicio')),
+  monto numeric(10, 2),
+  descripcion_bien text not null,
+  -- 3. Detalle
+  tipo text not null check (tipo in ('reclamo', 'queja')),
+  detalle text not null,
+  pedido text not null,
+  -- 4. Respuesta del proveedor (la completas tú en Supabase)
+  estado text not null default 'pendiente' check (estado in ('pendiente', 'respondido')),
+  respuesta text,
+  respondido_en timestamptz
+);
+alter table public.reclamaciones enable row level security;

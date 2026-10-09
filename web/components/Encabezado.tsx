@@ -6,7 +6,7 @@ export async function Encabezado() {
   const { usuario, plan } = await obtenerSesion();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-tinta-100/70 bg-arena-100/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 print:hidden border-b border-tinta-100/70 bg-arena-100/85 backdrop-blur-md">
       <div className="contenedor flex h-16 items-center justify-between gap-4">
         <Link href="/" aria-label="RumboBarato, inicio">
           <Logo />
