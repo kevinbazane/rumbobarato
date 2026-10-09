@@ -17,8 +17,7 @@ export async function POST() {
     return respuesta;
   } catch (e) {
     console.error('checkout', e);
-    // El detalle viene de Mercado Pago (no contiene claves) y ayuda a diagnosticar.
-    const detalle = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: `No pudimos iniciar el pago. Intenta de nuevo en un momento. Detalle: ${detalle}` }, { status: 502 });
+    // El detalle técnico queda en los registros (Vercel → Logs); al usuario, un mensaje claro.
+    return NextResponse.json({ error: 'No pudimos iniciar el pago. Intenta de nuevo en un momento.' }, { status: 502 });
   }
 }

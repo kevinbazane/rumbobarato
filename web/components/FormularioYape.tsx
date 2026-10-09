@@ -86,12 +86,10 @@ export function FormularioYape({ monto }: { monto: string }) {
       setEstado(datos.pendiente ? 'pendiente' : 'error');
       setMensaje(datos.mensaje ?? 'No se pudo completar el pago.');
     } catch (e) {
-      console.error('Yape', etapa, e);
+      // El detalle técnico va a la consola del navegador; al usuario, un mensaje claro.
+      console.error('Yape', etapa, describirError(e));
       setEstado('error');
-      setMensaje(
-        `No pudimos ${etapa}. Revisa tu número y el código de aprobación (vence en pocos minutos) e inténtalo de nuevo. ` +
-          `Detalle: ${describirError(e)}`,
-      );
+      setMensaje('No pudimos completar el pago. Revisa tu número y el código de aprobación (vence en pocos minutos) e inténtalo de nuevo.');
     }
   }
 

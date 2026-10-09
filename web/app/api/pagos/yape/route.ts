@@ -27,10 +27,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, mensaje: explicarRechazo(detalle) });
   } catch (e) {
     console.error('yape', e);
-    // El detalle viene de Mercado Pago (no contiene claves) y ayuda a diagnosticar.
-    const detalle = e instanceof Error ? e.message : String(e);
+    // El detalle técnico queda en los registros (Vercel → Logs); al usuario, un mensaje claro.
     return NextResponse.json(
-      { ok: false, mensaje: `No pudimos procesar el pago con Yape. Revisa el número y el código e intenta de nuevo. Detalle: ${detalle}` },
+      { ok: false, mensaje: 'No pudimos procesar el pago con Yape. Revisa el número y el código de aprobación e intenta de nuevo.' },
       { status: 502 },
     );
   }
