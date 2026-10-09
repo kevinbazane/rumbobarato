@@ -1,3 +1,5 @@
+import { GUIAS_INTERNACIONALES } from './destinos-internacionales.ts';
+
 /**
  * Guías de viaje por destino. La clave es el nombre normalizado (minúsculas, sin tildes)
  * tal como lo envía Apps Script (Config.gs → AEROPUERTOS_PERU → nombre).
@@ -17,6 +19,10 @@ export interface GuiaDestino {
   fotos: { busqueda: string; wikipedia: string };
   /** true si no hay guía escrita para este destino (se muestra solo lo general). */
   generica?: boolean;
+  /** Solo internacionales: documento para viajeros peruanos, moneda e idioma. */
+  documento?: string;
+  moneda?: string;
+  idioma?: string;
 }
 
 export function normalizarDestino(nombre: string): string {
@@ -488,31 +494,34 @@ const G: Record<string, GuiaDestino> = {
   },
 };
 
-/** Guía para destinos sin contenido propio (sobre todo internacionales). */
+/** Guía para destinos sin guía escrita: la descripción se completa con Wikipedia en la página. */
 function guiaGenerica(nombre: string, internacional: boolean): GuiaDestino {
   return {
     nombre, region: internacional ? 'Internacional' : 'Perú',
-    lema: internacional ? `Tu próximo viaje fuera del Perú` : `Descubre ${nombre}`,
-    descripcion: `Una tarifa baja para conocer ${nombre}. Revisa las fechas, compara el equipaje incluido y compra antes de que suba el precio.`,
+    lema: internacional ? `Tu próxima aventura fuera del Perú` : `Descubre ${nombre}`,
+    descripcion: `${nombre} te espera con una tarifa baja difícil de repetir. Revisa las fechas, compara qué equipaje incluye la tarifa y asegura tu pasaje antes de que suba el precio.`,
     mejorEpoca: 'Revisa el clima del destino para tus fechas antes de comprar.',
     clima: 'Varía según la temporada.',
     imperdibles: [],
     consejos: internacional
       ? [
           'Verifica que tu pasaporte tenga al menos 6 meses de vigencia desde la fecha de viaje.',
-          'Revisa si el destino pide visa a peruanos o algún requisito de ingreso.',
-          'Considera un seguro de viaje con cobertura médica.',
-          'Si tienes escala, confirma si necesitas visa de tránsito.',
+          'Revisa si el destino pide visa u otro requisito de ingreso a peruanos.',
+          'Contrata un seguro de viaje con cobertura médica internacional.',
+          'Si tu vuelo tiene escala, confirma si necesitas visa de tránsito.',
+          'Avisa a tu banco que viajarás y lleva una tarjeta sin comisiones en el extranjero.',
         ]
       : ['Lleva tu DNI vigente.'],
     desdeAeropuerto: 'Revisa las opciones de traslado del aeropuerto antes de llegar.',
+    documento: internacional ? 'Pasaporte vigente. Revisa los requisitos de ingreso para peruanos antes de comprar.' : undefined,
     fotos: { busqueda: nombre, wikipedia: nombre },
     generica: true,
   };
 }
 
 export function guiaDestino(nombre: string, internacional = false): GuiaDestino {
-  return G[normalizarDestino(nombre)] ?? guiaGenerica(nombre, internacional);
+  const clave = normalizarDestino(nombre);
+  return G[clave] ?? GUIAS_INTERNACIONALES[clave] ?? guiaGenerica(nombre, internacional);
 }
 
 /** Consejos que aplican a cualquier oferta. */

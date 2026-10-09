@@ -326,6 +326,40 @@ function publicarOfertasPendientesEnWeb() {
   Logger.log('Ofertas publicadas en la web: ' + publicadas);
 }
 
+/**
+ * Te reenvía el mensaje "listo para copiar" de las ofertas de los últimos días que
+ * ya están en la web pero cuyo mensaje salió con otro link (TinyURL o Google Flights).
+ * El mensaje nuevo lleva en "Ver y comprar" el link de la oferta en tu web.
+ */
+function reenviarMensajesConLinkWeb() {
+  var ss = obtenerSpreadsheet();
+  var hoja = ss.getSheetByName(HOJA_OFERTAS);
+  if (hoja.getLastRow() < 2) return Logger.log('No hay ofertas registradas.');
+  var datos = hoja.getRange(2, 1, hoja.getLastRow() - 1, COLUMNAS_OFERTAS.length).getValues();
+  var col = function (nombre) { return COLUMNAS_OFERTAS.indexOf(nombre); };
+  var limite = Date.now() - 10 * 24 * 3600 * 1000;
+  var reenviados = 0;
+
+  datos.forEach(function (r, i) {
+    var linkWeb = String(r[col('Link corto')]);
+    var mensaje = String(r[col('Mensaje')]);
+    if (r[col('Estado')] !== ESTADO_GENERADO) return;
+    if (new Date(r[col('Registrado el')]).getTime() < limite) return;
+    if (linkWeb.indexOf(urlWeb() + '/o/') !== 0 || mensaje.indexOf(linkWeb) >= 0) return;
+
+    var nuevo = mensaje.replace(/(Ver y comprar: )\S+/, '$1' + linkWeb);
+    hoja.getRange(i + 2, col('Mensaje') + 1).setValue(nuevo);
+    enviarMensajeListo({
+      origen: { nombre: r[col('Origen')], nacional: r[col('Alcance')] === 'Nacional' },
+      destino: { nombre: r[col('Destino')], nacional: r[col('Alcance')] === 'Nacional' },
+      precio: { valor: Number(r[col('Precio')]) },
+    }, nuevo);
+    Logger.log('📧 Reenviado: ' + r[col('Origen')] + ' → ' + r[col('Destino')] + ' (' + linkWeb + ')');
+    reenviados++;
+  });
+  Logger.log('Mensajes reenviados: ' + reenviados);
+}
+
 /** Link corto (TinyURL, o is.gd si TinyURL falla). Devuelve '' si no se pudo acortar. */
 function acortarLink(url) {
   if (!CONFIG.ACORTAR_LINKS || !url) return '';

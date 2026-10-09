@@ -53,3 +53,24 @@ async function desdeWikipedia(titulo: string): Promise<Imagen[]> {
   }
   return [];
 }
+
+/**
+ * Resumen del destino desde Wikipedia en español (para destinos sin guía escrita).
+ * Se guarda en caché una semana para no consultar Wikipedia en cada visita.
+ */
+export async function resumenWikipedia(titulo: string): Promise<string | null> {
+  try {
+    const r = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titulo)}`, {
+      headers: { 'User-Agent': 'RumboBarato/1.0 (ofertas de vuelos)' },
+      next: { revalidate: 60 * 60 * 24 * 7 },
+    });
+    if (!r.ok) return null;
+    const datos = (await r.json()) as { type?: string; extract?: string };
+    if (datos.type !== 'standard' || !datos.extract) return null;
+    // Las primeras 3 oraciones bastan para presentar el destino.
+    const oraciones = datos.extract.match(/[^.!?]+[.!?]+/g) ?? [datos.extract];
+    return oraciones.slice(0, 3).join('').trim();
+  } catch {
+    return null;
+  }
+}

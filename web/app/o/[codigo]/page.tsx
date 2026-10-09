@@ -5,12 +5,13 @@ import { BotonCompartir } from '@/components/BotonCompartir';
 import { FotoDestino } from '@/components/FotoDestino';
 import {
   IconoAvion, IconoBombilla, IconoCalendario, IconoCandado, IconoCheck, IconoExterno,
-  IconoMapa, IconoMontana, IconoReloj, IconoSol,
+  IconoMapa, IconoMontana, IconoMundo, IconoReloj, IconoSol,
 } from '@/components/Iconos';
 import { TarjetaOferta } from '@/components/TarjetaOferta';
 import { PLAN, SITIO } from '@/lib/config';
 import { CONSEJOS_COMPRA, guiaDestino } from '@/lib/destinos';
-import { fechaHora, fechaLarga, haceCuanto, noches, precio, textoEscalas } from '@/lib/formato';
+import { fechaCorta, fechaHora, fechaLarga, haceCuanto, noches, precio, textoEscalas } from '@/lib/formato';
+import { resumenWikipedia } from '@/lib/imagenes';
 import { obtenerOferta, otrasOfertas } from '@/lib/ofertas';
 import { obtenerSesion } from '@/lib/sesion';
 
@@ -44,6 +45,27 @@ export default async function PaginaOferta({ params }: Props) {
   const guia = guiaDestino(oferta.destino_nombre, internacional);
   const otras = await otrasOfertas(oferta, plan.accesoPremium);
   const url = `${SITIO.url}/o/${oferta.codigo}`;
+  // Sin guía escrita: se presenta el destino con el resumen de Wikipedia.
+  const descripcion = guia.generica ? ((await resumenWikipedia(guia.fotos.wikipedia)) ?? guia.descripcion) : guia.descripcion;
+  const textoCompartir = internacional
+    ? [
+        '✈️ ¡Mira esta oferta internacional que encontré en RumboBarato!',
+        '',
+        `🌎 ${oferta.origen_nombre} → ${oferta.destino_nombre}`,
+        '🔥 Precio bajo detectado en Google Flights',
+        '',
+        'Mira el precio, las fechas y cómo comprarla aquí:',
+      ].join('\n')
+    : [
+        '✈️ ¡Mira esta oferta que encontré en RumboBarato!',
+        '',
+        `🇵🇪 ${oferta.origen_nombre} → ${oferta.destino_nombre}`,
+        `💰 Desde S/ ${precio(oferta.precio)} ida y vuelta`,
+        `📅 ${fechaCorta(oferta.fecha_ida)} – ${fechaCorta(oferta.fecha_vuelta)}`,
+        `🛫 ${oferta.aerolinea} · ${textoEscalas(oferta.escalas)}`,
+        '',
+        '⚡ Las tarifas bajas duran poco. Mírala aquí:',
+      ].join('\n');
 
   return (
     <>
@@ -109,13 +131,42 @@ export default async function PaginaOferta({ params }: Props) {
           <section className="rounded-3xl bg-white p-6 shadow-tarjeta ring-1 ring-tinta-100/60 sm:p-8">
             <p className="text-sm font-bold uppercase tracking-wider text-coral-600">Guía de viaje</p>
             <h2 className="mt-1 text-2xl font-extrabold">Qué saber de {guia.nombre}</h2>
-            <p className="mt-4 leading-relaxed text-tinta-700">{guia.descripcion}</p>
+            <p className="mt-4 leading-relaxed text-tinta-700">{descripcion}</p>
 
             {!guia.generica && (
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <Mini icono={<IconoCalendario className="h-5 w-5" />} titulo="Mejor época" texto={guia.mejorEpoca} />
                 <Mini icono={<IconoSol className="h-5 w-5" />} titulo="Clima" texto={guia.clima} />
                 <Mini icono={<IconoMontana className="h-5 w-5" />} titulo="Altura" texto={guia.altura ?? 'Sin efectos de altura importantes.'} />
+              </div>
+            )}
+
+            {internacional && (guia.documento || guia.moneda || guia.idioma) && (
+              <div className="mt-6 rounded-2xl bg-cielo-50 p-5">
+                <p className="flex items-center gap-2 text-sm font-extrabold text-cielo-600">
+                  <IconoMundo className="h-5 w-5" /> Antes de viajar
+                </p>
+                <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                  {guia.documento && (
+                    <div className="sm:col-span-3">
+                      <dt className="text-xs font-bold uppercase tracking-wider text-tinta-400">Documentos</dt>
+                      <dd className="mt-0.5 text-tinta-800">{guia.documento}</dd>
+                    </div>
+                  )}
+                  {guia.moneda && (
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-wider text-tinta-400">Moneda</dt>
+                      <dd className="mt-0.5 font-semibold text-tinta-800">{guia.moneda}</dd>
+                    </div>
+                  )}
+                  {guia.idioma && (
+                    <div>
+                      <dt className="text-xs font-bold uppercase tracking-wider text-tinta-400">Idioma</dt>
+                      <dd className="mt-0.5 font-semibold text-tinta-800">{guia.idioma}</dd>
+                    </div>
+                  )}
+                </dl>
+                <p className="mt-3 text-xs text-tinta-500">Los requisitos de ingreso pueden cambiar: confírmalos con la aerolínea o el consulado antes de viajar.</p>
               </div>
             )}
 
@@ -201,7 +252,7 @@ export default async function PaginaOferta({ params }: Props) {
             )}
             <div className="mt-5">
               <BotonCompartir
-                texto={internacional ? `Oferta ${oferta.origen_nombre} → ${oferta.destino_nombre} en RumboBarato` : `${oferta.origen_nombre} → ${oferta.destino_nombre} desde S/ ${precio(oferta.precio)} ida y vuelta`}
+                texto={textoCompartir}
                 url={url}
               />
             </div>
