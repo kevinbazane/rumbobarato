@@ -49,22 +49,22 @@ export default async function PaginaOferta({ params }: Props) {
   const descripcion = guia.generica ? ((await resumenWikipedia(guia.fotos.wikipedia)) ?? guia.descripcion) : guia.descripcion;
   const textoCompartir = internacional
     ? [
-        '✈️ ¡Mira esta oferta internacional que encontré en RumboBarato!',
+        '🔥 ¡Mira esta oferta internacional que encontré en RumboBarato!',
         '',
         `🌎 ${oferta.origen_nombre} → ${oferta.destino_nombre}`,
-        '🔥 Precio bajo detectado en Google Flights',
+        '📉 Precio bajo detectado en Google Flights',
         '',
         'Mira el precio, las fechas y cómo comprarla aquí:',
       ].join('\n')
     : [
-        '✈️ ¡Mira esta oferta que encontré en RumboBarato!',
+        '🔥 ¡Mira esta oferta que encontré en RumboBarato!',
         '',
         `🇵🇪 ${oferta.origen_nombre} → ${oferta.destino_nombre}`,
         `💰 Desde S/ ${precio(oferta.precio)} ida y vuelta`,
         `📅 ${fechaCorta(oferta.fecha_ida)} – ${fechaCorta(oferta.fecha_vuelta)}`,
         `🛫 ${oferta.aerolinea} · ${textoEscalas(oferta.escalas)}`,
         '',
-        '⚡ Las tarifas bajas duran poco. Mírala aquí:',
+        '⏰ Las tarifas bajas duran poco. Mírala aquí:',
       ].join('\n');
 
   return (

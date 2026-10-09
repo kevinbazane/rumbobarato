@@ -345,9 +345,14 @@ function reenviarMensajesConLinkWeb() {
     var mensaje = String(r[col('Mensaje')]);
     if (r[col('Estado')] !== ESTADO_GENERADO) return;
     if (new Date(r[col('Registrado el')]).getTime() < limite) return;
-    if (linkWeb.indexOf(urlWeb() + '/o/') !== 0 || mensaje.indexOf(linkWeb) >= 0) return;
+    var premiumDesactualizado = /Pasa a Premium 👉 /.test(mensaje) && mensaje.indexOf(CONFIG.LINK_PREMIUM) < 0;
+    if (linkWeb.indexOf(urlWeb() + '/o/') !== 0) return;
+    if (mensaje.indexOf(linkWeb) >= 0 && !premiumDesactualizado) return;
 
-    var nuevo = mensaje.replace(/(Ver y comprar: )\S+/, '$1' + linkWeb);
+    // Actualiza los dos links del mensaje guardado: el de la oferta y el de Premium.
+    var nuevo = mensaje
+      .replace(/(Ver y comprar: )\S+/, '$1' + linkWeb)
+      .replace(/(Pasa a Premium 👉 )\S+/, '$1' + CONFIG.LINK_PREMIUM);
     hoja.getRange(i + 2, col('Mensaje') + 1).setValue(nuevo);
     enviarMensajeListo({
       origen: { nombre: r[col('Origen')], nacional: r[col('Alcance')] === 'Nacional' },
