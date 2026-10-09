@@ -6,6 +6,8 @@
  *   revisarAlertas()       Lo que corre el disparador. Puedes ejecutarlo a mano para probar.
  *   probarUltimaAlerta()   Analiza la alerta más reciente SIN registrar ni enviar nada (ver Registro de ejecución).
  *   guardarMuestraEnDrive() Guarda el HTML de la última alerta en tu Drive (útil para ajustar el parser).
+ *   probarConexionWeb()    Comprueba que Apps Script puede publicar ofertas en tu web.
+ *   publicarOfertasPendientesEnWeb() Sube a la web las ofertas recientes que no llegaron a publicarse.
  *   desinstalar()          Elimina el disparador automático.
  */
 
@@ -138,7 +140,9 @@ function procesarOferta(ss, m, o) {
       motivo = 'Ya se generó mensaje para esta ruta y fechas en las últimas ' + CONFIG.HORAS_DEDUPE + ' h';
     } else {
       o.link = resolverLink(o.link);
-      linkCorto = publicarEnWeb(o) || acortarLink(o.link);
+      var web = publicarEnWeb(datosParaWeb(o));
+      linkCorto = web.url || acortarLink(o.link);
+      if (web.error) motivo = 'No se publicó en la web: ' + web.error;
       mensaje = generarMensaje(Object.assign({}, o, { link: linkCorto || o.link }), CONFIG.LINK_PREMIUM);
       enviarMensajeListo(o, mensaje);
       estado = ESTADO_GENERADO;
@@ -193,41 +197,133 @@ function resolverLink(url) {
   return esLinkVuelos(actual) ? actual : url;
 }
 
+function urlWeb() {
+  return String(CONFIG.WEB_URL || '').trim().replace(/\/$/, '');
+}
+
+function claveWeb() {
+  return String(CONFIG.WEB_API_SECRET || '').trim();
+}
+
+function datosParaWeb(o) {
+  return {
+    clave: o.clave,
+    alcance: esNacional(o) ? 'nacional' : 'internacional',
+    origen_codigo: o.origen.codigo || null,
+    origen_nombre: o.origen.nombre,
+    destino_codigo: o.destino.codigo || null,
+    destino_nombre: o.destino.nombre,
+    precio: o.precio.valor,
+    moneda: o.precio.moneda,
+    fecha_ida: fechaIso(o.ida),
+    fecha_vuelta: fechaIso(o.vuelta),
+    escalas: o.escalas,
+    aerolinea: o.aerolinea,
+    link_google_flights: o.link,
+  };
+}
+
+/** Explica en palabras simples qué significa la respuesta de la web. */
+function explicarRespuestaWeb(codigo, texto) {
+  if (codigo === 401) return 'clave incorrecta: WEB_API_SECRET (Config) no es igual a OFERTAS_API_SECRET (Vercel), o falta en Vercel';
+  if (codigo === 404) return 'no se encontró la web: revisa WEB_URL en Config (debe ser como https://rumbobarato.vercel.app)';
+  return 'la web respondió ' + codigo + ': ' + String(texto).slice(0, 200);
+}
+
 /**
- * Publica la oferta en la web y devuelve su link (https://tuweb/o/codigo).
- * Devuelve '' si la web no está configurada o no respondió bien.
+ * Publica una oferta en la web. Devuelve { url, error }: url es el link de la
+ * oferta (https://tuweb/o/codigo) o '' si no se pudo; error explica por qué.
  */
-function publicarEnWeb(o) {
-  if (!CONFIG.WEB_URL || !CONFIG.WEB_API_SECRET) return '';
+function publicarEnWeb(datos) {
+  if (!urlWeb() || !claveWeb()) {
+    return { url: '', error: 'WEB_URL o WEB_API_SECRET están vacíos en Config' };
+  }
   try {
-    var r = UrlFetchApp.fetch(CONFIG.WEB_URL.replace(/\/$/, '') + '/api/ofertas', {
+    var r = UrlFetchApp.fetch(urlWeb() + '/api/ofertas', {
       method: 'post',
       contentType: 'application/json',
-      headers: { Authorization: 'Bearer ' + CONFIG.WEB_API_SECRET },
+      headers: { Authorization: 'Bearer ' + claveWeb() },
       muteHttpExceptions: true,
-      payload: JSON.stringify({
-        clave: o.clave,
-        alcance: esNacional(o) ? 'nacional' : 'internacional',
-        origen_codigo: o.origen.codigo || null,
-        origen_nombre: o.origen.nombre,
-        destino_codigo: o.destino.codigo || null,
-        destino_nombre: o.destino.nombre,
-        precio: o.precio.valor,
-        moneda: o.precio.moneda,
-        fecha_ida: fechaIso(o.ida),
-        fecha_vuelta: fechaIso(o.vuelta),
-        escalas: o.escalas,
-        aerolinea: o.aerolinea,
-        link_google_flights: o.link,
-      }),
+      payload: JSON.stringify(datos),
     });
     var codigo = r.getResponseCode();
-    if (codigo === 200 || codigo === 201) return JSON.parse(r.getContentText()).url || '';
-    Logger.log('La web respondió ' + codigo + ': ' + r.getContentText());
+    if (codigo === 200 || codigo === 201) return { url: JSON.parse(r.getContentText()).url || '', error: '' };
+    return { url: '', error: explicarRespuestaWeb(codigo, r.getContentText()) };
   } catch (e) {
-    Logger.log('No se pudo publicar en la web: ' + e);
+    return { url: '', error: 'no se pudo conectar con la web: ' + e };
   }
-  return '';
+}
+
+/**
+ * Ejecuta esta función para comprobar que Apps Script puede publicar en tu web.
+ * No publica nada: envía datos vacíos a propósito y revisa la respuesta.
+ */
+function probarConexionWeb() {
+  if (!urlWeb() || !claveWeb()) {
+    Logger.log('❌ Falta configurar WEB_URL y/o WEB_API_SECRET en Config.');
+    return;
+  }
+  var r = UrlFetchApp.fetch(urlWeb() + '/api/ofertas', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + claveWeb() },
+    muteHttpExceptions: true,
+    payload: '{}',
+  });
+  var codigo = r.getResponseCode();
+  if (codigo === 400) {
+    Logger.log('✅ Conexión correcta: la web aceptó la clave. Las próximas ofertas se publicarán solas.');
+  } else {
+    Logger.log('❌ ' + explicarRespuestaWeb(codigo, r.getContentText()));
+  }
+}
+
+/**
+ * Publica en la web las ofertas de los últimos días que generaron mensaje pero
+ * no llegaron a la web (por ejemplo, si la web no estaba configurada). No envía
+ * correos: en el registro de ejecución verás el link nuevo de cada una.
+ */
+function publicarOfertasPendientesEnWeb() {
+  var ss = obtenerSpreadsheet();
+  var hoja = ss.getSheetByName(HOJA_OFERTAS);
+  if (hoja.getLastRow() < 2) return Logger.log('No hay ofertas registradas.');
+  var datos = hoja.getRange(2, 1, hoja.getLastRow() - 1, COLUMNAS_OFERTAS.length).getValues();
+  var col = function (nombre) { return COLUMNAS_OFERTAS.indexOf(nombre); };
+  var zona = ss.getSpreadsheetTimeZone();
+  var iso = function (v) { return v instanceof Date ? Utilities.formatDate(v, zona, 'yyyy-MM-dd') : String(v); };
+  var limite = Date.now() - 10 * 24 * 3600 * 1000;
+  var publicadas = 0;
+
+  datos.forEach(function (r, i) {
+    if (r[col('Estado')] !== ESTADO_GENERADO) return;
+    if (new Date(r[col('Registrado el')]).getTime() < limite) return;
+    if (String(r[col('Link corto')]).indexOf(urlWeb() + '/o/') === 0) return; // ya está en la web
+
+    var web = publicarEnWeb({
+      clave: r[col('Clave')],
+      alcance: r[col('Alcance')] === 'Nacional' ? 'nacional' : 'internacional',
+      origen_codigo: r[col('Cód. origen')] || null,
+      origen_nombre: r[col('Origen')],
+      destino_codigo: r[col('Cód. destino')] || null,
+      destino_nombre: r[col('Destino')],
+      precio: Number(r[col('Precio')]),
+      moneda: 'PEN',
+      fecha_ida: iso(r[col('Ida')]),
+      fecha_vuelta: iso(r[col('Vuelta')]),
+      escalas: Number(r[col('Escalas')]),
+      aerolinea: r[col('Aerolínea')],
+      link_google_flights: r[col('Link')],
+    });
+    var fila = i + 2;
+    if (web.url) {
+      hoja.getRange(fila, col('Link corto') + 1).setValue(web.url);
+      Logger.log('✅ ' + r[col('Origen')] + ' → ' + r[col('Destino')] + ': ' + web.url);
+      publicadas++;
+    } else {
+      Logger.log('❌ ' + r[col('Origen')] + ' → ' + r[col('Destino')] + ': ' + web.error);
+    }
+  });
+  Logger.log('Ofertas publicadas en la web: ' + publicadas);
 }
 
 /** Link corto (TinyURL, o is.gd si TinyURL falla). Devuelve '' si no se pudo acortar. */
