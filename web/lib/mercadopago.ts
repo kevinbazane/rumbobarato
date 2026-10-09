@@ -12,6 +12,13 @@ import { supabaseAdmin } from './supabase/admin.ts';
  */
 const API = 'https://api.mercadopago.com';
 
+/** Error de la API de Mercado Pago, con el código HTTP para decidir qué hacer. */
+export class ErrorMercadoPago extends Error {
+  constructor(public status: number, mensaje: string) {
+    super(mensaje);
+  }
+}
+
 async function mp<T>(ruta: string, init: RequestInit = {}): Promise<T> {
   const token = process.env.MP_ACCESS_TOKEN?.trim();
   if (!token) throw new Error('Falta MP_ACCESS_TOKEN');
@@ -34,7 +41,7 @@ async function mp<T>(ruta: string, init: RequestInit = {}): Promise<T> {
     if (c.id && c.status) return cuerpo as T;
     const e = c.errors?.[0];
     const detalle = [e?.code, e?.message ?? c.message, ...(e?.details ?? [])].filter(Boolean).join(' – ');
-    throw new Error(`Mercado Pago ${r.status}: ${detalle || r.statusText}`);
+    throw new ErrorMercadoPago(r.status, `Mercado Pago ${r.status}: ${detalle || r.statusText}`);
   }
   return cuerpo as T;
 }
