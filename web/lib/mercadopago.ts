@@ -54,7 +54,7 @@ export async function crearOrdenCheckoutPro(usuario: { id: string; email: string
       description: descripcion,
       // Sin "payer": quien paga se identifica en la página de Mercado Pago. Así se puede
       // pagar con otra cuenta (y, en modo prueba, con la cuenta compradora de prueba).
-      items: [{ title: descripcion, unit_price: monto, quantity: 1, unit_measure: 'unit', total_amount: monto }],
+      items: [{ title: descripcion, unit_price: monto, quantity: 1 }],
       config: {
         online: {
           success_url: `${SITIO.url}/pago/exito`,
