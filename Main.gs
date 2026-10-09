@@ -8,6 +8,7 @@
  *   guardarMuestraEnDrive() Guarda el HTML de la última alerta en tu Drive (útil para ajustar el parser).
  *   probarConexionWeb()    Comprueba que Apps Script puede publicar ofertas en tu web.
  *   publicarOfertasPendientesEnWeb() Sube a la web las ofertas recientes que no llegaron a publicarse.
+ *   revisarReclamos()      Te envía un correo por cada reclamo nuevo del Libro de Reclamaciones (corre solo cada 5 min).
  *   desinstalar()          Elimina el disparador automático.
  */
 
@@ -88,6 +89,13 @@ function revisarAlertas() {
     });
     mensajes.sort(function (a, b) { return a.getDate() - b.getDate(); });
     mensajes.forEach(function (m) { procesarCorreo(ss, m); });
+
+    // Aprovecha la misma revisión para avisarte de reclamos nuevos del Libro de Reclamaciones.
+    try {
+      revisarReclamos();
+    } catch (e) {
+      Logger.log('No se pudieron revisar los reclamos: ' + e);
+    }
   } finally {
     lock.releaseLock();
   }
@@ -475,4 +483,89 @@ function guardarMuestraEnDrive() {
   var m = ultimaAlerta();
   var archivo = DriveApp.createFile('alerta-google-flights-' + fechaIso(m.getDate()) + '.html', m.getBody(), MimeType.HTML);
   Logger.log('Guardado en Drive: ' + archivo.getUrl());
+}
+
+
+// ---------------------------------------------------------------------------
+// Libro de Reclamaciones: aviso por correo de cada reclamo nuevo
+// ---------------------------------------------------------------------------
+
+/**
+ * Consulta en la web los reclamos que aún no se avisaron, te envía un correo por
+ * cada uno y los marca como avisados. Corre sola dentro de revisarAlertas.
+ */
+function revisarReclamos() {
+  if (!urlWeb() || !claveWeb()) return;
+  var r = UrlFetchApp.fetch(urlWeb() + '/api/reclamos/pendientes', {
+    headers: { Authorization: 'Bearer ' + claveWeb() },
+    muteHttpExceptions: true,
+  });
+  if (r.getResponseCode() !== 200) {
+    Logger.log('Reclamos: ' + explicarRespuestaWeb(r.getResponseCode(), r.getContentText()));
+    return;
+  }
+  var reclamos = JSON.parse(r.getContentText()).reclamos || [];
+  var avisados = [];
+  reclamos.forEach(function (rec) {
+    try {
+      enviarAvisoReclamo(rec);
+      avisados.push(rec.id);
+    } catch (e) {
+      Logger.log('No se pudo enviar el aviso del reclamo ' + rec.hoja + ': ' + e);
+    }
+  });
+  if (!avisados.length) return;
+  UrlFetchApp.fetch(urlWeb() + '/api/reclamos/notificados', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + claveWeb() },
+    muteHttpExceptions: true,
+    payload: JSON.stringify({ ids: avisados }),
+  });
+  Logger.log('Avisos de reclamos enviados: ' + avisados.length);
+}
+
+function enviarAvisoReclamo(rec) {
+  var destino = CONFIG.CORREO_RECLAMOS || CONFIG.CORREO_DESTINO || Session.getEffectiveUser().getEmail();
+  var tipo = rec.tipo === 'queja' ? 'Queja' : 'Reclamo';
+  var limite = Utilities.formatDate(new Date(rec.fecha_limite + 'T12:00:00Z'), 'America/Lima', 'dd/MM/yyyy');
+  var registrado = Utilities.formatDate(new Date(rec.creado_en), 'America/Lima', "dd/MM/yyyy 'a las' HH:mm");
+  var asunto = 'LIBRO DE RECLAMACIONES | ' + tipo + ' N.° ' + rec.hoja + ' – responder antes del ' + limite;
+
+  var filas = [
+    ['Hoja N.°', rec.hoja],
+    ['Registrado', registrado],
+    ['Responder antes del', limite + ' (15 días hábiles; si hay feriados, el plazo es algo mayor)'],
+    ['Tipo', tipo],
+    ['Nombre', rec.nombre],
+    [rec.tipo_documento, rec.numero_documento],
+    ['Domicilio', rec.domicilio],
+    ['Correo', rec.email],
+    ['Teléfono', rec.telefono || '—'],
+  ];
+  if (rec.menor_de_edad) filas.push(['Padre, madre o apoderado', rec.apoderado || '—']);
+  filas = filas.concat([
+    ['Bien contratado', (rec.bien_tipo === 'producto' ? 'Producto' : 'Servicio') + ': ' + rec.descripcion_bien],
+    ['Monto reclamado', rec.monto != null ? 'S/ ' + Number(rec.monto).toFixed(2) : '—'],
+    ['Detalle', rec.detalle],
+    ['Pedido', rec.pedido],
+  ]);
+
+  var texto = filas.map(function (f) { return f[0] + ': ' + f[1]; }).join('\n') +
+    '\n\nRespóndele a ' + rec.email + ' y registra tu respuesta en Supabase → reclamaciones.';
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:640px">' +
+    '<p style="background:#C52F12;color:#fff;font-weight:bold;padding:10px 14px;border-radius:8px;margin:0 0 14px">' +
+    'Nuevo ' + tipo.toLowerCase() + ' en el Libro de Reclamaciones · responder antes del ' + limite + '</p>' +
+    '<table style="border-collapse:collapse;width:100%;font-size:14px">' +
+    filas.map(function (f) {
+      return '<tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;vertical-align:top;width:170px">' + escaparHtml(String(f[0])) +
+        '</td><td style="padding:8px;border-bottom:1px solid #eee;white-space:pre-wrap">' + escaparHtml(String(f[1])) + '</td></tr>';
+    }).join('') +
+    '</table>' +
+    '<p style="color:#555;font-size:13px;margin-top:16px">Respóndele por correo a <a href="mailto:' + escaparHtml(rec.email) + '">' + escaparHtml(rec.email) +
+    '</a> y luego, en Supabase → Table Editor → <b>reclamaciones</b>, completa <b>respuesta</b>, cambia <b>estado</b> a "respondido" y pon la fecha en <b>respondido_en</b>.</p>' +
+    '</div>';
+
+  MailApp.sendEmail({ to: destino, subject: asunto, body: texto, htmlBody: html, name: 'RumboBarato · Libro de Reclamaciones', replyTo: rec.email });
 }

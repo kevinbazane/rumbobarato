@@ -78,3 +78,20 @@ export function numeroHoja(numero: number, fecha: string | Date): string {
   const anio = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric' }).format(new Date(fecha));
   return `${String(numero).padStart(6, '0')}-${anio}`;
 }
+
+/**
+ * Fecha límite para responder: 15 días hábiles (lunes a viernes) desde el registro,
+ * en hora de Lima. No descuenta feriados: es una referencia conservadora; si hay
+ * feriados en medio, el plazo legal real es un poco mayor.
+ */
+export function fechaLimiteRespuesta(creado: string | Date, diasHabiles = 15): string {
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date(creado));
+  const d = new Date(`${ymd}T12:00:00Z`);
+  let contados = 0;
+  while (contados < diasHabiles) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const dia = d.getUTCDay();
+    if (dia !== 0 && dia !== 6) contados++;
+  }
+  return d.toISOString().slice(0, 10);
+}

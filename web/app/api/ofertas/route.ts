@@ -1,5 +1,6 @@
-import { randomInt, timingSafeEqual } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
+import { autorizadoAppsScript } from '@/lib/autorizacion';
 import { SITIO } from '@/lib/config';
 import { guiaDestino } from '@/lib/destinos';
 import { buscarImagenes } from '@/lib/imagenes';
@@ -12,7 +13,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
  * (misma clave) ya existe, devuelve su link sin duplicarla.
  */
 export async function POST(req: NextRequest) {
-  if (!autorizado(req.headers.get('authorization'))) {
+  if (!autorizadoAppsScript(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
@@ -42,14 +43,6 @@ export async function POST(req: NextRequest) {
     if (carrera) return NextResponse.json({ url: `${SITIO.url}/o/${carrera.codigo}`, codigo: carrera.codigo });
   }
   return NextResponse.json({ error: 'No se pudo generar el código' }, { status: 500 });
-}
-
-function autorizado(cabecera: string | null): boolean {
-  const secreto = process.env.OFERTAS_API_SECRET?.trim();
-  if (!secreto || !cabecera?.startsWith('Bearer ')) return false;
-  const a = Buffer.from(cabecera.slice(7));
-  const b = Buffer.from(secreto);
-  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 const LETRAS = 'abcdefghjkmnpqrstuvwxyz23456789';

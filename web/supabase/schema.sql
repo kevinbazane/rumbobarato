@@ -159,3 +159,6 @@ create table if not exists public.reclamaciones (
   respondido_en timestamptz
 );
 alter table public.reclamaciones enable row level security;
+
+-- Aviso por correo de cada reclamo nuevo (lo envía Apps Script).
+alter table public.reclamaciones add column if not exists notificado_en timestamptz;

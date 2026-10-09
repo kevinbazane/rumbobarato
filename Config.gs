@@ -40,6 +40,10 @@ var CONFIG = {
 
   // La misma clave que pusiste en la web como OFERTAS_API_SECRET.
   WEB_API_SECRET: '',
+
+  // Correo donde te llega el aviso de cada reclamo del Libro de Reclamaciones.
+  // Vacío = el mismo de CORREO_DESTINO o, si también está vacío, tu propio correo.
+  CORREO_RECLAMOS: '',
 };
 
 // Aeropuertos nacionales de Perú: código IATA -> nombre a mostrar + alias de búsqueda.

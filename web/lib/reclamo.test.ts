@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { numeroHoja, validarReclamo } from './reclamo.ts';
+import { fechaLimiteRespuesta, numeroHoja, validarReclamo } from './reclamo.ts';
 
 const valido = {
   nombre: 'Ana Torres Ramos', tipo_documento: 'DNI', numero_documento: '45678912',
@@ -41,4 +41,11 @@ test('número de hoja con ceros y año de Lima', () => {
   assert.equal(numeroHoja(7, '2026-10-09T15:00:00Z'), '000007-2026');
   // 1 de enero a las 03:00 UTC todavía es 31 de diciembre en Lima.
   assert.equal(numeroHoja(1, '2027-01-01T03:00:00Z'), '000001-2026');
+});
+
+test('fecha límite: 15 días hábiles sin contar sábados ni domingos', () => {
+  // Viernes 9 oct 2026 → 15 días hábiles después = viernes 30 oct 2026.
+  assert.equal(fechaLimiteRespuesta('2026-10-09T15:00:00Z'), '2026-10-30');
+  // Registrado un sábado: se empieza a contar desde el lunes.
+  assert.equal(fechaLimiteRespuesta('2026-10-10T15:00:00Z'), '2026-10-30');
 });
