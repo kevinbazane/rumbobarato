@@ -31,7 +31,7 @@ export default function Privacidad() {
         <li><b>Datos técnicos:</b> cookies necesarias para mantener tu sesión iniciada y registros técnicos del servidor (como la dirección IP) para seguridad y para resolver fallas.</li>
         <li><b>Canal de WhatsApp:</b> al seguir nuestro canal, WhatsApp no nos muestra tu número de teléfono. No recibimos datos personales tuyos por esa vía.</li>
         <li><b>Tu WhatsApp (opcional):</b> solo si nos lo das en tu cuenta. Lo usamos para enviarte promociones <b>únicamente si marcaste la casilla de autorización</b>; registramos la fecha en que la diste.</li>
-        <li><b>Píxel de Meta:</b> usamos el píxel de Meta (Facebook e Instagram), que instala cookies para medir las visitas, los clics en “Unirme al canal” y los pagos que provienen de nuestros anuncios, y para mostrar anuncios a personas interesadas. Meta trata esos datos según su propia política de privacidad. Puedes bloquearlo con la configuración de cookies de tu navegador o con las preferencias de anuncios de Facebook e Instagram.</li>
+        <li><b>Medición de anuncios:</b> usamos herramientas de medición publicitaria de terceros que instalan cookies para medir las visitas, los clics en “Unirme al canal” y los pagos que provienen de nuestros anuncios. Puedes bloquear estas cookies desde la configuración de tu navegador.</li>
       </ul>
 
       <h2>3. Para qué usamos tus datos</h2>
@@ -40,7 +40,7 @@ export default function Privacidad() {
         <li>Procesar tus pagos a través de Mercado Pago y atender devoluciones.</li>
         <li>Registrar y responder tus reclamos y quejas, como exige el Código de Protección y Defensa del Consumidor.</li>
         <li>Mantener la seguridad del sitio y prevenir fraudes.</li>
-        <li>Medir el resultado de nuestros anuncios (píxel de Meta).</li>
+        <li>Medir el resultado de nuestros anuncios.</li>
         <li>Enviarte promociones por WhatsApp, <b>solo con tu consentimiento expreso</b>. Puedes retirarlo en cualquier momento desde Mi cuenta o escribiéndonos.</li>
       </ul>
       <p>
@@ -55,7 +55,7 @@ export default function Privacidad() {
         <li><b>Supabase</b> (base de datos y cuentas de usuario; servidores en Brasil).</li>
         <li><b>Vercel</b> (alojamiento del sitio web; servidores en Estados Unidos y otros países).</li>
         <li><b>Google</b> (solo si eliges ingresar con tu cuenta de Google).</li>
-        <li><b>Meta Platforms</b> (píxel de medición de anuncios en Facebook e Instagram).</li>
+        <li><b>Plataformas de publicidad digital</b> (medición del resultado de nuestros anuncios).</li>
       </ul>
       <p>
         Algunos de estos proveedores almacenan datos fuera del Perú, lo que constituye un flujo transfronterizo de datos personales. Trabajamos solo
