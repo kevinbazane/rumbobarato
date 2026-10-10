@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { IconoCheck, IconoEscudo } from '@/components/Iconos';
-import { FormularioWhatsapp } from '@/components/FormularioWhatsapp';
 import { MediosDePago } from '@/components/MediosDePago';
 import { MODO_DEMO, PLAN } from '@/lib/config';
 import { fechaHora, precio } from '@/lib/formato';
@@ -77,9 +76,6 @@ export default async function Premium() {
                   Al pagar aceptas los <Link href="/terminos" className="underline">Términos y condiciones</Link> (sin renovación automática) y la{' '}
                   <Link href="/privacidad" className="underline">Política de privacidad</Link>.
                 </p>
-                <div className="mt-5">
-                  <FormularioWhatsapp whatsappInicial={usuario.whatsapp} aceptaInicial={usuario.aceptaPromos} compacto />
-                </div>
               </>
             ) : (
               <div className="space-y-3">
