@@ -190,3 +190,27 @@ join public.pagos g on g.usuario_id = p.id
 group by p.id;
 
 revoke all on public.clientes_premium from anon, authenticated;
+
+-- Vista con el estado exacto del plan (mismas reglas de la web: aviso 3 días antes y 3 días de tolerancia).
+create or replace view public.clientes_premium as
+select
+  p.email, p.nombre, p.whatsapp, p.acepta_promos, p.premium_hasta,
+  (p.premium_hasta > now()) as premium_vigente,
+  count(g.id) as cantidad_pagos,
+  sum(g.monto) as total_pagado,
+  max(g.creado_en) as ultimo_pago,
+  (array_agg(g.metodo order by g.creado_en desc))[1] as ultimo_medio,
+  string_agg(distinct g.metodo, ', ') as medios_usados,
+  case
+    when p.premium_hasta > now() + interval '3 days' then 'activo'
+    when p.premium_hasta > now() then 'por_vencer'
+    when p.premium_hasta + interval '3 days' > now() then 'tolerancia'
+    else 'vencido'
+  end as estado,
+  (p.premium_hasta + interval '3 days' > now()) as acceso_premium,
+  (p.premium_hasta + interval '3 days' > now() and p.acepta_promos and p.whatsapp is not null) as enviar_ofertas
+from public.perfiles p
+join public.pagos g on g.usuario_id = p.id
+group by p.id;
+
+revoke all on public.clientes_premium from anon, authenticated;

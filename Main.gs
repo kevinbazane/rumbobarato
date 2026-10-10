@@ -9,6 +9,7 @@
  *   probarConexionWeb()    Comprueba que Apps Script puede publicar ofertas en tu web.
  *   publicarOfertasPendientesEnWeb() Sube a la web las ofertas recientes que no llegaron a publicarse.
  *   revisarReclamos()      Te envía un correo por cada reclamo nuevo del Libro de Reclamaciones (corre solo cada 5 min).
+ *   sincronizarClientes()  Actualiza ya las pestañas "Enviar ofertas Premium" y "Clientes Premium (todos)" del Sheet.
  *   desinstalar()          Elimina el disparador automático.
  */
 
@@ -95,6 +96,13 @@ function revisarAlertas() {
       revisarReclamos();
     } catch (e) {
       Logger.log('No se pudieron revisar los reclamos: ' + e);
+    }
+
+    // Y para actualizar las pestañas de clientes Premium (como máximo cada 15 minutos).
+    try {
+      sincronizarClientes(false);
+    } catch (e) {
+      Logger.log('No se pudo actualizar la lista de clientes: ' + e);
     }
   } finally {
     lock.releaseLock();
@@ -568,4 +576,90 @@ function enviarAvisoReclamo(rec) {
     '</div>';
 
   MailApp.sendEmail({ to: destino, subject: asunto, body: texto, htmlBody: html, name: 'RumboBarato · Libro de Reclamaciones', replyTo: rec.email });
+}
+
+
+// ---------------------------------------------------------------------------
+// Clientes Premium en el Google Sheet
+// ---------------------------------------------------------------------------
+
+var HOJA_ENVIAR_PREMIUM = 'Enviar ofertas Premium';
+var HOJA_CLIENTES = 'Clientes Premium (todos)';
+var ESTADOS_PLAN = {
+  activo: 'Activo',
+  por_vencer: 'Por vencer (≤ 3 días)',
+  tolerancia: 'En tolerancia (venció, aún con acceso)',
+  vencido: 'Vencido (no renovó)',
+  free: 'Sin plan',
+};
+
+/**
+ * Trae de la web la lista de clientes y reescribe las dos pestañas:
+ * - "Enviar ofertas Premium": con acceso Premium hoy + aceptaron promociones + dejaron WhatsApp.
+ * - "Clientes Premium (todos)": todos los que alguna vez pagaron, con su estado.
+ * Corre sola cada 15 minutos dentro de revisarAlertas. Para actualizar ya, ejecútala a mano.
+ */
+function sincronizarClientes(forzar) {
+  if (!urlWeb() || !claveWeb()) return;
+  var props = PropertiesService.getScriptProperties();
+  var ultima = Number(props.getProperty('CLIENTES_SINCRONIZADOS_EN') || 0);
+  // Desde revisarAlertas llega forzar = false: solo actualiza si pasaron 15 minutos.
+  if (forzar === false && Date.now() - ultima < 15 * 60 * 1000) return;
+
+  var r = UrlFetchApp.fetch(urlWeb() + '/api/clientes', {
+    headers: { Authorization: 'Bearer ' + claveWeb() },
+    muteHttpExceptions: true,
+  });
+  if (r.getResponseCode() !== 200) {
+    Logger.log('Clientes: ' + explicarRespuestaWeb(r.getResponseCode(), r.getContentText()));
+    return;
+  }
+  var clientes = JSON.parse(r.getContentText()).clientes || [];
+  var ss = obtenerSpreadsheet();
+  var zona = 'America/Lima';
+  var fecha = function (iso) { return iso ? Utilities.formatDate(new Date(iso), zona, 'dd/MM/yyyy') : ''; };
+  var chat = function (n) { return n ? 'https://wa.me/' + String(n).replace(/\D/g, '') : ''; };
+
+  var enviar = clientes.filter(function (c) { return c.enviar_ofertas; });
+  escribirHoja(ss, HOJA_ENVIAR_PREMIUM,
+    ['Nombre', 'WhatsApp', 'Abrir chat', 'Correo', 'Estado del plan', 'Vence el', 'Acceso hasta', 'Permiso desde'],
+    enviar.map(function (c) {
+      return [c.nombre, c.whatsapp, chat(c.whatsapp), c.email, ESTADOS_PLAN[c.estado] || c.estado,
+        fecha(c.premium_hasta), fecha(c.acceso_hasta), fecha(c.promos_aceptadas_en)];
+    }),
+    'Clientes con acceso Premium hoy que aceptaron recibir promociones por WhatsApp. Actualizado: ' +
+      Utilities.formatDate(new Date(), zona, "dd/MM/yyyy HH:mm") + ' · Total: ' + enviar.length);
+
+  escribirHoja(ss, HOJA_CLIENTES,
+    ['Nombre', 'Correo', 'WhatsApp', 'Estado del plan', '¿Recibe ofertas Premium?', 'Acepta promociones',
+      'Vence el', 'Acceso hasta', 'Pagos', 'Total pagado (S/)', 'Último pago', 'Último medio'],
+    clientes.map(function (c) {
+      var motivo = c.enviar_ofertas ? 'Sí'
+        : !c.acceso_premium ? 'No: plan vencido'
+        : !c.acepta_promos ? 'No: no dio permiso'
+        : 'No: falta WhatsApp';
+      return [c.nombre, c.email, c.whatsapp, ESTADOS_PLAN[c.estado] || c.estado, motivo, c.acepta_promos ? 'Sí' : 'No',
+        fecha(c.premium_hasta), fecha(c.acceso_hasta), c.cantidad_pagos, c.total_pagado, fecha(c.ultimo_pago), c.ultimo_medio];
+    }),
+    'Todos los clientes que alguna vez pagaron. Actualizado: ' + Utilities.formatDate(new Date(), zona, "dd/MM/yyyy HH:mm") +
+      ' · Total: ' + clientes.length);
+
+  props.setProperty('CLIENTES_SINCRONIZADOS_EN', String(Date.now()));
+  Logger.log('Clientes actualizados: ' + clientes.length + ' en total, ' + enviar.length + ' para enviar ofertas Premium.');
+}
+
+/** Reescribe una pestaña: fila 1 = nota, fila 2 = títulos, desde la fila 3 = datos. */
+function escribirHoja(ss, nombre, titulos, filas, nota) {
+  var hoja = ss.getSheetByName(nombre) || ss.insertSheet(nombre);
+  hoja.clear();
+  hoja.getRange(1, 1).setValue(nota).setFontStyle('italic').setFontColor('#5D76A0');
+  hoja.getRange(2, 1, 1, titulos.length).setValues([titulos]).setFontWeight('bold').setBackground('#FFE3DA');
+  if (filas.length) {
+    hoja.getRange(3, 1, filas.length, titulos.length).setValues(filas);
+    // El WhatsApp como texto, para que Sheets no le quite el "+".
+    var colWsp = titulos.indexOf('WhatsApp');
+    if (colWsp >= 0) hoja.getRange(3, colWsp + 1, filas.length, 1).setNumberFormat('@').setValues(filas.map(function (f) { return [f[colWsp]]; }));
+  }
+  hoja.setFrozenRows(2);
+  hoja.autoResizeColumns(1, titulos.length);
 }
