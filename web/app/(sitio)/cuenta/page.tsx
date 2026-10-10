@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { FormularioWhatsapp } from '@/components/FormularioWhatsapp';
 import { PLAN } from '@/lib/config';
 import { fechaHora, precio } from '@/lib/formato';
 import { obtenerSesion } from '@/lib/sesion';
@@ -60,6 +61,14 @@ export default async function Cuenta() {
         <Link href="/premium" className="boton-primario mt-6">
           {plan.tipo === 'free' ? `Hazte Premium · S/ ${precio(PLAN.precio)}` : `Renovar · S/ ${precio(PLAN.precio)}`}
         </Link>
+      </section>
+
+      <section className="rounded-3xl bg-white p-6 shadow-tarjeta ring-1 ring-tinta-100/60 sm:p-8">
+        <h2 className="text-xl font-extrabold">Promociones por WhatsApp</h2>
+        <p className="mt-1 text-sm text-tinta-600">Déjanos tu número si quieres recibir promociones. Para dejar de recibirlas, desmarca la casilla y guarda.</p>
+        <div className="mt-4">
+          <FormularioWhatsapp whatsappInicial={usuario.whatsapp} aceptaInicial={usuario.aceptaPromos} />
+        </div>
       </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-tarjeta ring-1 ring-tinta-100/60 sm:p-8">

@@ -1,4 +1,6 @@
+'use client';
 import { WHATSAPP_CANAL } from '@/lib/config';
+import { rastrear } from '@/lib/pixel';
 import { IconoWhatsapp } from '../Iconos';
 
 /** Botón principal: abre el Canal de WhatsApp (en celular abre directo la app). */
@@ -11,6 +13,7 @@ export function BotonCanal({
   return (
     <a
       href={WHATSAPP_CANAL}
+      onClick={() => rastrear('Lead', { content_name: 'Canal de WhatsApp', content_category: 'canal_free' })}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center justify-center gap-2.5 rounded-full bg-[#25D366] font-extrabold ${compacto ? 'px-4 py-2 text-sm' : 'px-7 py-4 text-base'} text-[#06371C] shadow-[0_10px_28px_-10px_rgba(37,211,102,.9)] transition hover:bg-[#1fc15c] active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] ${latido ? 'animate-latido' : ''} ${className}`}

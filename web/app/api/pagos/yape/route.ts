@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const estado = resumenOrden(orden);
     if (estado === 'pagada') {
       const r = await activarSiCorresponde(orden, usuario.id);
-      if (r.activado) return NextResponse.json({ ok: true, premiumHasta: r.premiumHasta });
+      if (r.activado) return NextResponse.json({ ok: true, premiumHasta: r.premiumHasta, ordenId: orden.id });
       console.error('yape pagado pero no activado', orden.id, r.motivo);
       return NextResponse.json({ ok: false, mensaje: 'Recibimos tu pago, pero no pudimos activarlo. Escríbenos y lo resolvemos.' });
     }

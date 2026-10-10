@@ -162,3 +162,31 @@ alter table public.reclamaciones enable row level security;
 
 -- Aviso por correo de cada reclamo nuevo (lo envía Apps Script).
 alter table public.reclamaciones add column if not exists notificado_en timestamptz;
+
+-- ---------------------------------------------------------------------------
+-- WhatsApp del cliente y permiso para promociones (consentimiento, Ley 29733).
+-- ---------------------------------------------------------------------------
+alter table public.perfiles add column if not exists whatsapp text;
+alter table public.perfiles add column if not exists acepta_promos boolean not null default false;
+alter table public.perfiles add column if not exists promos_aceptadas_en timestamptz;
+
+-- Vista para ti: quién pagó, cuánto, con qué medio y si se le pueden enviar promociones.
+-- Solo visible desde el panel de Supabase (no desde la web).
+create or replace view public.clientes_premium as
+select
+  p.email,
+  p.nombre,
+  p.whatsapp,
+  p.acepta_promos,
+  p.premium_hasta,
+  (p.premium_hasta > now()) as premium_vigente,
+  count(g.id) as cantidad_pagos,
+  sum(g.monto) as total_pagado,
+  max(g.creado_en) as ultimo_pago,
+  (array_agg(g.metodo order by g.creado_en desc))[1] as ultimo_medio,
+  string_agg(distinct g.metodo, ', ') as medios_usados
+from public.perfiles p
+join public.pagos g on g.usuario_id = p.id
+group by p.id;
+
+revoke all on public.clientes_premium from anon, authenticated;

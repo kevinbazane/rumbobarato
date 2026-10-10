@@ -72,14 +72,14 @@ export function FormularioYape({ monto }: { monto: string }) {
         body: JSON.stringify({ token: token.id }),
       });
       const texto = await r.text();
-      let datos: { ok: boolean; pendiente?: boolean; mensaje?: string };
+      let datos: { ok: boolean; pendiente?: boolean; mensaje?: string; ordenId?: string };
       try {
         datos = JSON.parse(texto);
       } catch {
         throw new Error(`El servidor respondió ${r.status}: ${texto.slice(0, 120)}`);
       }
       if (datos.ok) {
-        router.push('/pago/exito?medio=yape');
+        router.push(`/pago/exito?medio=yape${datos.ordenId ? `&order_id=${encodeURIComponent(datos.ordenId)}` : ''}`);
         router.refresh();
         return;
       }

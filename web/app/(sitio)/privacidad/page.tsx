@@ -4,7 +4,7 @@ import { EMPRESA } from '@/lib/config';
 
 export const metadata: Metadata = { title: 'Política de privacidad' };
 
-const ACTUALIZADO = '9 de octubre de 2026';
+const ACTUALIZADO = '10 de octubre de 2026';
 
 export default function Privacidad() {
   return (
@@ -30,8 +30,9 @@ export default function Privacidad() {
         <li><b>Libro de Reclamaciones:</b> nombre, documento de identidad, domicilio, correo, teléfono y el contenido de tu reclamo o queja.</li>
         <li><b>Datos técnicos:</b> cookies necesarias para mantener tu sesión iniciada y registros técnicos del servidor (como la dirección IP) para seguridad y para resolver fallas.</li>
         <li><b>Canal de WhatsApp:</b> al seguir nuestro canal, WhatsApp no nos muestra tu número de teléfono. No recibimos datos personales tuyos por esa vía.</li>
+        <li><b>Tu WhatsApp (opcional):</b> solo si nos lo das en tu cuenta. Lo usamos para enviarte promociones <b>únicamente si marcaste la casilla de autorización</b>; registramos la fecha en que la diste.</li>
+        <li><b>Píxel de Meta:</b> usamos el píxel de Meta (Facebook e Instagram), que instala cookies para medir las visitas, los clics en “Unirme al canal” y los pagos que provienen de nuestros anuncios, y para mostrar anuncios a personas interesadas. Meta trata esos datos según su propia política de privacidad. Puedes bloquearlo con la configuración de cookies de tu navegador o con las preferencias de anuncios de Facebook e Instagram.</li>
       </ul>
-      <p>No usamos cookies publicitarias en este sitio. Si en el futuro las incorporamos, actualizaremos esta política.</p>
 
       <h2>3. Para qué usamos tus datos</h2>
       <ul>
@@ -39,11 +40,12 @@ export default function Privacidad() {
         <li>Procesar tus pagos a través de Mercado Pago y atender devoluciones.</li>
         <li>Registrar y responder tus reclamos y quejas, como exige el Código de Protección y Defensa del Consumidor.</li>
         <li>Mantener la seguridad del sitio y prevenir fraudes.</li>
+        <li>Medir el resultado de nuestros anuncios (píxel de Meta).</li>
+        <li>Enviarte promociones por WhatsApp, <b>solo con tu consentimiento expreso</b>. Puedes retirarlo en cualquier momento desde Mi cuenta o escribiéndonos.</li>
       </ul>
       <p>
         Tratamos tus datos porque son necesarios para darte el servicio que contratas, para cumplir obligaciones legales (por ejemplo, el Libro de
-        Reclamaciones y las normas tributarias) o porque nos das tu consentimiento. <b>No vendemos tus datos ni los usamos para enviarte publicidad
-        por correo.</b>
+        Reclamaciones y las normas tributarias) o porque nos das tu consentimiento. <b>No vendemos tus datos.</b>
       </p>
 
       <h2>4. Con quién los compartimos</h2>
@@ -53,6 +55,7 @@ export default function Privacidad() {
         <li><b>Supabase</b> (base de datos y cuentas de usuario; servidores en Brasil).</li>
         <li><b>Vercel</b> (alojamiento del sitio web; servidores en Estados Unidos y otros países).</li>
         <li><b>Google</b> (solo si eliges ingresar con tu cuenta de Google).</li>
+        <li><b>Meta Platforms</b> (píxel de medición de anuncios en Facebook e Instagram).</li>
       </ul>
       <p>
         Algunos de estos proveedores almacenan datos fuera del Perú, lo que constituye un flujo transfronterizo de datos personales. Trabajamos solo
@@ -62,6 +65,7 @@ export default function Privacidad() {
       <h2>5. Cuánto tiempo los guardamos</h2>
       <ul>
         <li><b>Cuenta:</b> mientras la mantengas activa o hasta que nos pidas eliminarla.</li>
+        <li><b>WhatsApp para promociones:</b> hasta que retires tu consentimiento o nos pidas eliminarlo.</li>
         <li><b>Pagos:</b> durante el plazo que exigen las normas tributarias y contables.</li>
         <li><b>Reclamos y quejas:</b> como mínimo dos (2) años desde su registro, según la normativa de protección al consumidor.</li>
       </ul>
